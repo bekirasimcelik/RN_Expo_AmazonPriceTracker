@@ -1,9 +1,8 @@
 import { FlatList, Image, Linking, Pressable, Text, View } from 'react-native';
+
 import dummyProducts from '~/assets/search.json';
 
 const products = dummyProducts.slice(0, 20);
-
-console.log(products);
 
 export default function SearchResultScreen() {
   return (
