@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Linking, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Button, FlatList, Image, Linking, Pressable, Text, View } from 'react-native';
 
 import dummyProducts from '~/assets/search.json';
 import { supabase } from '~/utils/supabase';
@@ -24,6 +24,11 @@ export default function SearchResultScreen() {
       .then(({ data }) => setSearch(data));
   }, [id]);
 
+  const startScraping = async () => {
+    const {data, error} = await supabase.functions.invoke("scrape-start", {body: JSON.stringify({ record: search })})
+    console.log(data, error);
+  };
+
   if (!search) {
     return <ActivityIndicator />;
   }
@@ -34,6 +39,7 @@ export default function SearchResultScreen() {
         <Text className="text-2xl m-2 font-semibold">{search.query}</Text>
         <Text>{dayjs(search.created_at).fromNow()}</Text>
         <Text>{search.status}</Text>
+        <Button title='Start Scraping' onPress={startScraping} />
       </View>
       <FlatList
         data={products}
