@@ -18,12 +18,12 @@ import { supabase } from '~/utils/supabase';
 
 dayjs.extend(relativeTime);
 
-const products = dummyProducts.slice(0, 20);
+// const products = dummyProducts.slice(0, 20);
 
 export default function SearchResultScreen() {
   const { id } = useLocalSearchParams();
   const [search, setSearch] = useState();
-  const [products, setProducts] = useState();
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
     supabase
@@ -35,9 +35,13 @@ export default function SearchResultScreen() {
 
     supabase
       .from('product_search')
-      .select('*')
+      .select('*, products(*)')
       .eq('search_id', id)
-      .then(({ data }) => setProducts(data));
+      .then(({ data, error }) => {
+        console.log('Data: ', data); // Çekilen veriyi kontrol edin
+        console.log('Error: ', error); // Hata varsa kontrol edin
+        setProducts(data?.map((d) => d.products));
+      });
   }, [id]);
 
   const startScraping = async () => {
