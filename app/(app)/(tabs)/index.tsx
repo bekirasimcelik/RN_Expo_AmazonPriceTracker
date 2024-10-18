@@ -28,7 +28,7 @@ export default function Home() {
   }, []);
 
   const PerformSearch = async () => {
-    console.warn('search: ', search);
+    // console.warn('search: ', search);
 
     // Save this search in database
     const { data, error } = await supabase

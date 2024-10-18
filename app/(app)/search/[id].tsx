@@ -38,8 +38,6 @@ export default function SearchResultScreen() {
       .select('*, products(*)')
       .eq('search_id', id)
       .then(({ data, error }) => {
-        console.log('Data: ', data); // Çekilen veriyi kontrol edin
-        console.log('Error: ', error); // Hata varsa kontrol edin
         setProducts(data?.map((d) => d.products));
       });
   }, [id]);
