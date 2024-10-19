@@ -16,6 +16,10 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(app)/(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(app)/modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen
+          name="(app)/search/[id]"
+          options={{ title: 'Search Products', headerBackTitleVisible: false }}
+        />
       </Stack>
     </AuthContextProvider>
   );
