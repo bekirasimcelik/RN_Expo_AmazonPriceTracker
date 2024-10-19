@@ -21,22 +21,25 @@ dayjs.extend(relativeTime);
 // const products = dummyProducts.slice(0, 20);
 
 export default function SearchResultScreen() {
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [search, setSearch] = useState();
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    fetchSearchAndProduct();
+    fetchSearch();
+    fetchProducts();
   }, [id]);
 
-  const fetchSearchAndProduct = () => {
+  const fetchSearch = () => {
     supabase
       .from('searches')
       .select('*')
       .eq('id', id)
       .single()
       .then(({ data }) => setSearch(data));
+  };
 
+  const fetchProducts = () => {
     supabase
       .from('product_search')
       .select('*, products(*)')
@@ -48,18 +51,22 @@ export default function SearchResultScreen() {
 
   useEffect(() => {
     // Listen to inserts
-    supabase
+    const subscription = supabase
       .channel('supabase_realtime')
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'searches' },
         (payload) => {
-          if (payload.new?.id === parseInt(id)) {
+          if (payload.new?.id === parseInt(id, 10)) {
             setSearch(payload.new);
+            fetchProducts();
           }
         }
       )
       .subscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const startScraping = async () => {
@@ -78,7 +85,7 @@ export default function SearchResultScreen() {
       <View className="m-2 gap-2 rounded bg-white p-2 shadow-sm">
         <Text className="text-xl font-semibold">{search.query}</Text>
         <Text>{dayjs(search.created_at).fromNow()}</Text>
-        <Text>{dayjs(search.status).fromNow()}</Text>
+        <Text>{search.status}</Text>
         <Button title="Start Scraping" onPress={startScraping} />
       </View>
       <FlatList
@@ -89,7 +96,7 @@ export default function SearchResultScreen() {
           <Pressable
             onPress={() => Linking.openURL(item.url)}
             className="flex-row gap-2 bg-white p-3">
-            <Image source={{ uri: item.image }} className="h-20 w-20" />
+            <Image source={{ uri: item.image }} className="h-20 w-20" resizeMode="contain" />
             <Text className="flex-1" numberOfLines={4}>
               {item.name}
             </Text>
