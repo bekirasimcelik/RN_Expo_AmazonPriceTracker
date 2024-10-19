@@ -26,6 +26,10 @@ export default function SearchResultScreen() {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
+    fetchSearchAndProduct();
+  }, [id]);
+
+  const fetchSearchAndProduct = () => {
     supabase
       .from('searches')
       .select('*')
@@ -40,7 +44,23 @@ export default function SearchResultScreen() {
       .then(({ data, error }) => {
         setProducts(data?.map((d) => d.products));
       });
-  }, [id]);
+  };
+
+  useEffect(() => {
+    // Listen to inserts
+    supabase
+      .channel('supabase_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'searches' },
+        (payload) => {
+          if (payload.new?.id === parseInt(id)) {
+            setSearch(payload.new);
+          }
+        }
+      )
+      .subscribe();
+  }, []);
 
   const startScraping = async () => {
     const { data, error } = await supabase.functions.invoke('scrape-start', {
