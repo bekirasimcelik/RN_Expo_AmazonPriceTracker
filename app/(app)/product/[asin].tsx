@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { FlatList, Image, Text, View } from 'react-native';
+import { FlatList, Image, Linking, Text, View } from 'react-native';
+import { Button } from '~/components/Button';
 import { Tables } from '~/types/supabase';
 import { supabase } from '~/utils/supabase';
 
@@ -52,6 +53,15 @@ export default function ProductDetailScreen() {
               </Text>
               <Text>$ {product.final_price}</Text>
             </View>
+
+            {product.url && (
+              <Button
+                className="m-2"
+                title="Open on Amazon"
+                onPress={() => Linking.openURL(product.url)}
+              />
+            )}
+
             <Text className="mt-4 p-2 font-semibold">Price History</Text>
           </View>
         }
