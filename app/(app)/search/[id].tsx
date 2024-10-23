@@ -1,17 +1,9 @@
+import Octicons from '@expo/vector-icons/Octicons';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Button,
-  FlatList,
-  Image,
-  Linking,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Button, FlatList, Image, Pressable, Text, View } from 'react-native';
 
 // import dummyProducts from '~/assets/search.json';
 import { Tables } from '~/types/supabase';
@@ -77,18 +69,40 @@ export default function SearchResultScreen() {
     console.log(data, error);
   };
 
+  const toggleIsTracked = async () => {
+    if (!search?.id) {
+      return;
+    }
+    await supabase
+      .from('searches')
+      .update({ is_tracked: !search?.is_tracked })
+      .eq('id', search?.id)
+      .select()
+      .single();
+  };
+
   if (!search) {
     return <ActivityIndicator />;
   }
 
   return (
     <View>
-      <View className="m-2 gap-2 rounded bg-white p-2 shadow-sm">
-        <Text className="text-xl font-semibold">{search.query}</Text>
-        <Text>{dayjs(search.created_at).fromNow()}</Text>
-        <Text>{search.status}</Text>
-        <Button title="Start Scraping" onPress={startScraping} />
+      <View className="m-2 flex-row items-center justify-between gap-2 rounded bg-white p-4 shadow-sm">
+        <View>
+          <Text className="text-xl font-semibold">{search.query}</Text>
+          <Text>{dayjs(search.created_at).fromNow()}</Text>
+          <Text>{search.status}</Text>
+        </View>
+        <Octicons
+          onPress={toggleIsTracked}
+          name={search.is_tracked ? 'bell-fill' : 'bell'}
+          size={24}
+          color="dimgray"
+        />
       </View>
+
+      <Button title="Start Scraping" onPress={startScraping} />
+
       <FlatList
         data={products}
         keyExtractor={(item) => item.asin}

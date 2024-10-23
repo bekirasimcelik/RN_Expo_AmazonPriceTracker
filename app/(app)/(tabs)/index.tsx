@@ -8,6 +8,9 @@ import { useAuth } from '~/contexts/AuthContext';
 import { Tables } from '~/types/supabase';
 import { supabase } from '~/utils/supabase';
 
+import Octicons from '@expo/vector-icons/Octicons';
+import SearchListItem from '~/components/SearchListItem';
+
 dayjs.extend(relativeTime);
 
 export default function Home() {
@@ -75,14 +78,7 @@ export default function Home() {
         onRefresh={fetchHistory}
         refreshing={false}
         contentContainerClassName="p-3 gap-2"
-        renderItem={({ item }) => (
-          <Link href={`/search/${item.id}`} asChild>
-            <Pressable className="border-b border-gray-200 pb-2">
-              <Text className="text-lg font-semibold">{item.query}</Text>
-              <Text className="color-gray">{dayjs(item.created_at).fromNow()}</Text>
-            </Pressable>
-          </Link>
-        )}
+        renderItem={({ item }) => <SearchListItem search={item} />}
       />
     </View>
   );
