@@ -1,29 +1,33 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 Deno.serve(async (req) => {
-  const authHeader = req.headers.get('Authorization')!;
+  const authHeader = req.headers.get("Authorization")!;
   const supabase = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    { global: { headers: { Authorization: authHeader } } }
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+    { global: { headers: { Authorization: authHeader } } },
   );
 
-  // get all tracked searches
-  const { data: searches, error } = await supabase.from('searches').select('*').eq('is_tracked', true);
+  // get all tracked searhes
+  const { data: searches, error } = await supabase
+    .from("searches")
+    .select("*")
+    .eq("is_tracked", true);
 
-  searches.map(search => await supabase.functions.invoke('scrape-start', {
-    body: JSON.stringify({ record: search }),
-  }));
+  const res = await Promise.all(
+    searches.map((search) =>
+      supabase.functions.invoke("scrape-start", {
+        body: JSON.stringify({ record: search }),
+      })
+    )
+  );
 
+  console.log(JSON.stringify(res, null, 2));
 
-  console.log(error);
-  console.log(searches.length);
-
-  return new Response(
-    JSON.stringify({ ok: "ok" }),
-    { headers: { "Content-Type": "application/json" } },
-  )
+  return new Response(JSON.stringify({ ok: "ok" }), {
+    headers: { "Content-Type": "application/json" },
+  });
 });
 
 /* To invoke locally:
