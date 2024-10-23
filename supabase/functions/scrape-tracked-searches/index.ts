@@ -12,6 +12,11 @@ Deno.serve(async (req) => {
   // get all tracked searches
   const { data: searches, error } = await supabase.from('searches').select('*').eq('is_tracked', true);
 
+  searches.map(search => await supabase.functions.invoke('scrape-start', {
+    body: JSON.stringify({ record: search }),
+  }));
+
+
   console.log(error);
   console.log(searches.length);
 
