@@ -68,17 +68,17 @@ Deno.serve(async (req) => {
   2. Make an HTTP request:
 
   curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/scrape-start' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
+    --header 'Authorization: Bearer api_key_public' \
     --header 'Content-Type: application/json' \
     --data '{"record": {"id": 1, "query": "iPhone"}}'
 
 
     
   curl -i --location --request POST 'https://qqyodrnvbmprqnfciacv.supabase.co/functions/v1/scrape-start' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxeW9kcm52Ym1wcnFuZmNpYWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkxNTcxMDEsImV4cCI6MjA0NDczMzEwMX0.cEeaDRroSwQQaY4w3Dfw2UZevCja-1yWxIDjJEffDa4' \
+    --header 'Authorization: Bearer api_key_public' \
     --header 'Content-Type: application/json' \
     --data '{"record": {"id": 1, "query": "iPhone"}}'
 
-endpoint=https://qqyodrnvbmprqnfciacv.supabase.co/functions/v1/scrape-complete&auth_header=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxeW9kcm52Ym1wcnFuZmNpYWN2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyOTE1NzEwMSwiZXhwIjoyMDQ0NzMzMTAxfQ.V9NnokVRr99tFXdfmh6J9b3e09s-Wpe22ezTCSyHjsA
+endpoint=https://qqyodrnvbmprqnfciacv.supabase.co/functions/v1/scrape-complete&auth_header=api_key_public
 
 */
