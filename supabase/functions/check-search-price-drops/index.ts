@@ -3,21 +3,85 @@
 // This enables autocomplete, go to definition, etc.
 
 // Setup type definitions for built-in Supabase Runtime APIs
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-
-console.log("Hello from Functions!")
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 Deno.serve(async (req) => {
-  const { name } = await req.json()
-  const data = {
-    message: `Hello ${name}!`,
+  const { record } = await req.json();
+  if (record.status !== "Done") {
+    return new Response(JSON.stringify({}), {
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  return new Response(
-    JSON.stringify(data),
-    { headers: { "Content-Type": "application/json" } },
-  )
-})
+  // init client
+  const authHeader = req.headers.get("Authorization")!;
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+    { global: { headers: { Authorization: authHeader } } },
+  );
+
+  const getProductLastPrices = async (product) => {
+    const { data, error } = await supabase
+      .from("product_snapshot")
+      .select("*")
+      .eq("asin", product.asin)
+      .order("created_at", { ascending: false })
+      .limit(2);
+    console.log(error);
+    return {
+      ...product,
+      snapshots: data,
+    };
+  };
+
+  // Check price drops
+  const { data: productSearch, error: productSearchError } = await supabase
+    .from("product_search")
+    .select("*, products(*)")
+    .eq("search_id", record.id);
+
+  if (!productSearch) {
+    return;
+  }
+
+  const products = await Promise.all(
+    productSearch.map((ps) => getProductLastPrices(ps.products)),
+  );
+
+  // products.map(product => ({...product, snapshots: }))
+
+  const priceDrops = products.filter(
+    (product) =>
+      product.snapshots.length === 2 &&
+      product.snapshots[0].final_price < product.snapshots[1].final_price,
+  );
+
+  if (priceDrops.length > 0) {
+    // Notify the user
+    const message = `
+      The are ${priceDrops.length} price drops in your search!
+
+      ${priceDrops.map(
+      (product) => `
+        ${product.name}
+        ${product.url}
+        From $${product.snapshots[1].final_price} dropped to $${product.snapshots[0].final_price
+        }
+        __________
+      `,
+    )
+      }
+    `;
+
+    console.log(message);
+  }
+
+  return new Response(JSON.stringify({}), {
+    headers: { "Content-Type": "application/json" },
+  });
+});
 
 /* To invoke locally:
 
