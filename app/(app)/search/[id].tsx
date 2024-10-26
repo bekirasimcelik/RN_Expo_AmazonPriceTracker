@@ -1,24 +1,30 @@
 import Octicons from '@expo/vector-icons/Octicons';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { Tables } from '~/types/supabase';
+import * as Notifications from 'expo-notifications';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Button, FlatList, Image, Pressable, Text, View } from 'react-native';
 
-// import dummyProducts from '~/assets/search.json';
-import { Tables } from '~/types/supabase';
+import { registerForPushNotificationsAsync, sendPushNotification } from '~/utils/notifications';
 import { supabase } from '~/utils/supabase';
 
 dayjs.extend(relativeTime);
-
-// const products = dummyProducts.slice(0, 20);
 
 export default function SearchResultScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [search, setSearch] = useState<Tables<'searches'> | null>(null);
   const [products, setProducts] = useState<Tables<'products'>[]>([]);
+  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
 
   useEffect(() => {
+    registerForPushNotificationsAsync().then((token) => {
+      if (token) {
+        setExpoPushToken(token);
+      }
+    });
+
     fetchSearch();
     fetchProducts();
   }, [id]);
@@ -73,7 +79,7 @@ export default function SearchResultScreen() {
     if (!search?.id) {
       return;
     }
-    await supabase
+    const { data } = await supabase
       .from('searches')
       .update({ is_tracked: !search?.is_tracked })
       .eq('id', search?.id)
@@ -117,20 +123,14 @@ export default function SearchResultScreen() {
 
     const message = `
       There are ${priceDrops.length} price drops in your search!
-
-      ${priceDrops.map(
-        (product) => `
-        ${product.name}
-        ${product.url}
-        From $${product.snapshots[1].final_price} dropped to ${product.snapshots[0].final_price}
-      `
-      )}
     `;
 
-    console.log(message);
+    // Gönderilecek bildirim
+    if (expoPushToken) {
+      await sendPushNotification(expoPushToken, message);
+    }
 
-    // const newProducts = products.filter((product) => product.snapshots.length <= 1);
-    // console.log('new: ', JSON.stringify(newProducts, null, 2));
+    console.log(message);
     console.log('drops: ', JSON.stringify(priceDrops, null, 2));
   };
 
@@ -164,9 +164,7 @@ export default function SearchResultScreen() {
         contentContainerClassName="gap-2 p-2"
         renderItem={({ item }) => (
           <Link href={`/product/${item.asin}`} asChild>
-            <Pressable
-              // onPress={() => Linking.openURL(item.url)}
-              className="flex-row gap-2 bg-white p-3">
+            <Pressable className="flex-row gap-2 bg-white p-3">
               <Image source={{ uri: item.image }} className="h-20 w-20" resizeMode="contain" />
               <Text className="flex-1" numberOfLines={4}>
                 {item.name}
